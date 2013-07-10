@@ -1,4 +1,4 @@
-== RelevanceQueryBuilder
+# RelevanceQueryBuilder
 
 Builds an SQL expression which adds a relevance value to the resulting rows.
 Relevance is calculated agains search string given. Relevance depends on the rules,
@@ -21,6 +21,8 @@ The code below demonstrates usage for the following search results ranking requi
 	h1,h2   MATCH_ANY    2      Results containing a part of the search term in its h1 or h2 of its content
 	text    MATCH_ANY    1      Results containing a part of the search term in its text
 
+Here is the code:
+
 	$b = new RelevanceQueryBuilder();
 
 	$b->addRelevanceRule(new RelevanceRule(
@@ -40,3 +42,24 @@ The code below demonstrates usage for the following search results ranking requi
 	));
 
 	$expression = $b->getRelevanceFieldDefinition('I want my beer!');
+
+	$sql = "
+	SELECT *, %expression% as relevance
+	FROM  `posts`
+	HAVING relevance > 0
+	ORDER BY relevance DESC";
+
+	$parsedSql = strtr($sql, array('%expression%' => $expression));
+
+The result would be :
+
+	SELECT *, (`nav` LIKE '%want%' OR `nav` LIKE '%beer!%')*16
+	+((`h1` LIKE '%want%' AND `h1` LIKE '%beer!%')
+	OR (`h2` LIKE '%want%' AND `h2` LIKE '%beer!%'))*8
+	+(`text` LIKE '%want%' AND `text` LIKE '%beer!%')*4
+	+(`h1` LIKE '%want%' OR `h1` LIKE '%beer!%'
+	OR `h2` LIKE '%want%' OR `h2` LIKE '%beer!%')*2
+	+(`text` LIKE '%want%' OR `text` LIKE '%beer!%')*1 as relevance
+	FROM  `posts`
+	HAVING relevance > 0
+	ORDER BY relevance DESC
