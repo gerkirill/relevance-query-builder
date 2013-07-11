@@ -1,7 +1,7 @@
 # RelevanceQueryBuilder
 
 Builds an SQL expression which adds a relevance value to the resulting rows.
-Relevance is calculated agains search string given. Relevance depends on the rules,
+Relevance is calculated against search string given. Relevance depends on the rules,
 defined with addRelevanceRule(). In short - each rule may define some rate, which will be given
 to the resulting record in a case keywords from the search string match some fields.
 Query builder result usage example:
