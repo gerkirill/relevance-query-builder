@@ -6,7 +6,10 @@ class RelevanceRule
 
 	private $fields = array();
 	private $escapedFields = array();
+	/** @var self::MATCH_ANY or self::MATCH_ALL */
 	private $matchType;
+	/** @var boolean if true - REGEXP '[[:<:]]word[[:>:]]' is used instead of LIKE '%word%' */
+	private $useRegexp = true;
 	private $rate;
 
 	public function __construct(array $fields, $matchType, $rate)
@@ -18,6 +21,16 @@ class RelevanceRule
 		{
 			$this->escapedFields[] = $this->escaseField($field);
 		}
+	}
+
+	public function useRegexp()
+	{
+		$this->useRegexp = true;
+	}
+
+	public function useLike()
+	{
+		$this->useRegexp = false;
 	}
 
 	public function getSql($sqlPreparedKeywords)
@@ -67,7 +80,15 @@ class RelevanceRule
 		$likeParts = array();
 		foreach($sqlPreparedKeywords as $sqlPreparedKeyword)
 		{
-			$likeParts[] = "$escapedField LIKE '%$sqlPreparedKeyword%'";
+			if ($this->useRegexp)
+			{
+				//TODO: regexp requires better escaping
+				$likeParts[] = "$escapedField REGEXP '[[:<:]]{$sqlPreparedKeyword}[[:>:]]'";
+			}
+			else
+			{
+				$likeParts[] = "$escapedField LIKE '%$sqlPreparedKeyword%'";
+			}
 		}
 		$fieldSql = implode($glue, $likeParts);
 		return $fieldSql;

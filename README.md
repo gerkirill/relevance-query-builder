@@ -51,6 +51,8 @@ Here is the code:
 
 	$parsedSql = strtr($sql, array('%expression%' => $expression));
 
+NOTE: the examples use LIKE in generated SQL, but now query builder uses REGEXP instead by default.
+
 The result would be :
 
 	SELECT *, (`nav` LIKE '%want%' OR `nav` LIKE '%beer!%')*16
